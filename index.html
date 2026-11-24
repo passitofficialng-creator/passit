@@ -56,6 +56,7 @@ input{display:block;width:100%;font:700 17px Nunito,system-ui,sans-serif;color:v
 <body>
 <div id="app"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="https://js.paystack.co/v1/inline.js"></script>
 <script>
 var EXAM = new Date("2027-04-17T00:00:00"); // placeholder: set the real JAMB date
 var SUBJECTS = {
@@ -140,6 +141,7 @@ function today(){var d=new Date();return d.getFullYear()+"-"+(d.getMonth()+1)+"-
 function yest(){var d=new Date();d.setDate(d.getDate()-1);return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate();}
 var SB_URL="https://nkueqotdlhaxjrmpieiq.supabase.co",SB_KEY="sb_publishable_NTh0VU_QwlgMUMOFGQKKiQ_gyPyZIrk";
 var sb=supabase.createClient(SB_URL,SB_KEY),USER=null,PREM=false,tmr=null;
+var PK="pk_test_3f0d2e04a27658f997817804833bd0bdcad57daf";
 function applyDay(){if(S.hday!==today()){S.hearts=5;S.hday=today();}
  if(S.last&&S.last!==today()&&S.last!==yest()){S.streak=0;}}
 async function load(){var r=await sb.from("profiles").select("*").eq("id",USER.id).single();
@@ -156,6 +158,18 @@ async function doAuth(m){var em=document.getElementById("em").value.trim(),pw=do
  else{r=await sb.auth.signInWithPassword({email:em,password:pw});}
  if(r.error){msg.style.color="var(--red)";msg.textContent=r.error.message;return;}
  USER=r.data.user;await load();save();home();}
+function startPay(){
+ if(!USER){return;}
+ var ref="PI"+Date.now()+Math.floor(Math.random()*1e6);
+ var hd=PaystackPop.setup({key:PK,email:USER.email,amount:400000,currency:"NGN",ref:ref,metadata:{user_id:USER.id},callback:function(r){confirmPay(r.reference);},onClose:function(){}});
+ hd.openIframe();}
+async function confirmPay(ref){
+ try{var s=await sb.auth.getSession();
+  var res=await fetch("/.netlify/functions/verify",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({reference:ref,token:s.data.session.access_token})});
+  var j=await res.json();
+  if(j.ok){await load();var m=document.getElementById("modal");if(m)m.remove();home();alert("Payment received. You are now Premium!");}
+  else{alert("We could not confirm your payment yet. Please keep this reference: "+ref);}
+ }catch(e){alert("Network problem. Please keep this reference: "+ref);}}
 async function logout(){await sb.auth.signOut();USER=null;PREM=false;S={xp:0,streak:0,last:"",hearts:5,hday:"",done:{}};authView("in");}
 var L=null, app=document.getElementById("app");
 function days(){return Math.max(0,Math.ceil((EXAM-new Date())/864e5));}
@@ -165,7 +179,7 @@ function home(){
  if(S.last!==today()){h+='<div class="card"><b>Your streak ends tonight.</b><div class="mute">Finish one lesson to keep it alive.</div></div>';}
  else{h+='<div class="card"><b>Streak kept for today 🔥</b><div class="mute">Come back tomorrow to make it '+(S.streak+1)+'.</div></div>';}
  for(var k in SUBJECTS){var d=S.done[k]||0;h+='<button class="card sub" onclick="start(\''+k+'\')"><span class="ico">'+SUBJECTS[k].ico+'</span><span style="flex:1"><b>'+SUBJECTS[k].name+'</b><div class="mute">'+d+' lesson'+(d===1?'':'s')+' done</div><div class="bar"><i style="width:'+Math.min(100,d*20)+'%"></i></div></span></button>';}
- h+='<div class="card center"><b>Go Premium for ₦4,000 a month</b><div class="mute">Unlimited hearts, full mock exams, parent reports.</div><div style="height:10px"></div><button class="btn gold" onclick="pay()">See Premium</button></div>';
+ if(PREM){h+='<div class="card center"><b>⭐ You are Premium</b><div class="mute">Unlimited hearts are on.</div></div>';}else h+='<div class="card center"><b>Go Premium for ₦4,000 a month</b><div class="mute">Unlimited hearts, full mock exams, parent reports.</div><div style="height:10px"></div><button class="btn gold" onclick="pay()">See Premium</button></div>';
  h+='<button class="btn ghost" onclick="logout()">Log out</button>';app.innerHTML=h;}
 function start(k){if(S.hearts<=0){pay();return;}var a=SUBJECTS[k].q.slice().sort(function(){return Math.random()-.5;}).slice(0,5);L={k:k,i:0,ok:0,sel:-1,qs:a};quiz();}
 function quiz(){
@@ -186,7 +200,7 @@ function finish(){
  app.innerHTML=hdr()+'<div class="center" style="padding-top:30px"><div style="font-size:64px">🎉</div><h1>Lesson complete!</h1><p>You got <b>'+L.ok+' of '+L.qs.length+'</b> right.</p><div class="card"><b>🔥 '+S.streak+'-day streak</b><div class="mute">+5 bonus XP for finishing</div></div><button class="btn" onclick="home()">Back to lessons</button></div>';L=null;}
 function pay(){
  var m=document.createElement("div");m.className="modal";m.id="modal";
- m.innerHTML='<div class="sheet"><h2>'+(S.hearts<=0?'Out of hearts':'PassIt Premium')+'</h2><p class="mute">'+(S.hearts<=0?'Hearts refill tomorrow, or go Premium and keep practising now.':'Everything you need to pass.')+'</p><div class="price">₦4,000<span class="mute" style="font-size:16px"> /month</span></div><ul class="tick"><li>Unlimited hearts</li><li>Full JAMB mock exams</li><li>Step-by-step explanations</li><li>Weekly progress report for parents</li></ul><button class="btn gold" onclick="alert(\'Paystack payment is added in the next step.\')">Start Premium</button><button class="btn ghost" onclick="closeM()">Maybe later</button></div>';
+ m.innerHTML='<div class="sheet"><h2>'+(S.hearts<=0?'Out of hearts':'PassIt Premium')+'</h2><p class="mute">'+(S.hearts<=0?'Hearts refill tomorrow, or go Premium and keep practising now.':'Everything you need to pass.')+'</p><div class="price">₦4,000<span class="mute" style="font-size:16px"> /month</span></div><ul class="tick"><li>Unlimited hearts</li><li>Full JAMB mock exams</li><li>Step-by-step explanations</li><li>Weekly progress report for parents</li></ul><button class="btn gold" onclick="startPay()">Start Premium</button><button class="btn ghost" onclick="closeM()">Maybe later</button></div>';
  document.body.appendChild(m);}
 function closeM(){var m=document.getElementById("modal");if(m)m.remove();home();}
 (async function(){var r=await sb.auth.getSession();if(r.data.session){USER=r.data.session.user;await load();save();home();}else{authView("up");}})();
