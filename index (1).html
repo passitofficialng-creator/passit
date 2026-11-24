@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>PassIt: JAMB Practice</title>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Nunito:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f6f8f3;--card:#fff;--ink:#14231a;--mute:#5d6f63;--line:#dce5da;--green:#0e7a47;--greenD:#0a5c35;--gold:#f2b705;--red:#d64045;--redBg:#fde8e8;--okBg:#e1f5e9;color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1a14;--card:#182720;--ink:#eaf3ec;--mute:#9db1a3;--line:#2a3f33;--green:#2fbf77;--greenD:#1f9a5c;--redBg:#3a1d1f;--okBg:#173a28;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0f1a14;--card:#182720;--ink:#eaf3ec;--mute:#9db1a3;--line:#2a3f33;--green:#2fbf77;--greenD:#1f9a5c;--redBg:#3a1d1f;--okBg:#173a28;color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:500 16px/1.45 Nunito,system-ui,sans-serif}
+h1,h2,h3,.big{font-family:"Baloo 2",system-ui,sans-serif;margin:0;line-height:1.1}
+#app{max-width:480px;margin:0 auto;padding:16px}
+.top{display:flex;gap:8px;align-items:center;justify-content:space-between;margin-bottom:14px}
+.logo{font:800 24px "Baloo 2",system-ui;color:var(--green)}
+.pill{background:var(--card);border:2px solid var(--line);border-radius:999px;padding:4px 12px;font-weight:700;white-space:nowrap}
+.hero{background:var(--green);color:#fff;border-radius:22px;padding:20px;margin-bottom:14px}
+.hero .big{font-size:56px;font-weight:800;color:var(--gold)}
+.hero p{margin:4px 0 0;opacity:.92}
+.card{background:var(--card);border:2px solid var(--line);border-radius:18px;padding:14px;margin-bottom:12px}
+.sub{display:flex;align-items:center;gap:12px;width:100%;text-align:left;font:inherit;color:inherit;cursor:pointer;border-bottom-width:5px}
+.sub:active{transform:translateY(2px);border-bottom-width:3px}
+.ico{font-size:30px;width:52px;height:52px;border-radius:50%;background:var(--okBg);display:grid;place-items:center;flex:none}
+.sub b{font-family:"Baloo 2",system-ui;font-size:19px}
+.bar{height:8px;border-radius:9px;background:var(--line);margin-top:6px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--gold)}
+.mute{color:var(--mute);font-size:14px}
+.btn{display:block;width:100%;border:0;border-bottom:5px solid var(--greenD);background:var(--green);color:#fff;font:800 18px "Baloo 2",system-ui;padding:12px;border-radius:16px;cursor:pointer}
+.btn:active{transform:translateY(2px);border-bottom-width:3px}
+.btn.gold{background:var(--gold);border-bottom-color:#b88a00;color:#2b2100}
+.btn.ghost{background:transparent;color:var(--mute);border:0;font-size:16px}
+.opt{display:block;width:100%;text-align:left;font:700 17px Nunito,system-ui;color:var(--ink);background:var(--card);border:2px solid var(--line);border-bottom-width:4px;border-radius:14px;padding:13px 14px;margin-bottom:10px;cursor:pointer}
+.opt.ok{background:var(--okBg);border-color:var(--green)}
+.opt.bad{background:var(--redBg);border-color:var(--red)}
+.q{font:700 22px/1.25 "Baloo 2",system-ui;margin:18px 0}
+.prog{flex:1;height:12px;background:var(--line);border-radius:9px;overflow:hidden}
+.prog i{display:block;height:100%;background:var(--green);transition:width .3s}
+.fb{border-radius:16px;padding:12px 14px;margin:6px 0 12px}
+.fb.ok{background:var(--okBg)}.fb.bad{background:var(--redBg)}
+.center{text-align:center}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.55);display:grid;place-items:end center;z-index:5}
+.sheet{background:var(--card);width:100%;max-width:480px;border-radius:24px 24px 0 0;padding:22px 18px calc(22px + env(safe-area-inset-bottom,0px))}
+.price{font:800 34px "Baloo 2",system-ui;color:var(--green)}
+ul.tick{list-style:none;padding:0;margin:12px 0}
+ul.tick li{padding:3px 0}
+ul.tick li:before{content:"✓ ";color:var(--green);font-weight:800}
+button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+input{display:block;width:100%;font:700 17px Nunito,system-ui,sans-serif;color:var(--ink);background:var(--card);border:2px solid var(--line);border-radius:14px;padding:13px 14px;margin-bottom:10px}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="https://js.paystack.co/v1/inline.js"></script>
+<script>
+var EXAM = new Date("2027-04-17T00:00:00"); // placeholder: set the real JAMB date
+var SUBJECTS = {
+ maths:{name:"Mathematics",ico:"➗",q:[
+  ["Solve: 2x + 6 = 14",["x = 2","x = 4","x = 6","x = 8"],1,"Subtract 6 from both sides to get 2x = 8, so x = 4."],
+  ["What is 15% of 200?",["20","25","30","35"],2,"15 ÷ 100 × 200 = 30."],
+  ["Simplify: 3² × 3³",["3⁵","3⁶","9⁵","6⁵"],0,"When you multiply powers with the same base, you add the indices: 2 + 3 = 5."],
+  ["A rectangle is 8 cm by 5 cm. What is its area?",["13 cm²","26 cm²","40 cm²","80 cm²"],2,"Area = length × width = 8 × 5 = 40."],
+  ["If a : b = 2 : 3 and b = 12, find a.",["6","8","9","18"],1,"12 ÷ 3 = 4 per part, so a = 2 × 4 = 8."]]},
+ english:{name:"English",ico:"📖",q:[
+  ["Choose the word closest in meaning to ABUNDANT.",["Scarce","Plentiful","Tiny","Rare"],1,"Abundant means existing in large amounts, which is plentiful."],
+  ["Choose the correct sentence.",["Each of the students have a book.","Each of the students has a book.","Each of the students are having a book.","Each of the students were with a book."],1,"“Each” is singular, so it takes “has”."],
+  ["Choose the word opposite in meaning to GENEROUS.",["Kind","Stingy","Rich","Brave"],1,"Generous means giving freely. Stingy is the opposite."],
+  ["Choose the word opposite in meaning to ANCIENT.",["Old","Modern","Broken","Famous"],1,"Ancient means very old. Modern is the opposite."],
+  ["The committee ___ its report yesterday.",["submit","submits","submitted","submitting"],2,"“Yesterday” signals the past tense: submitted."]]},
+ biology:{name:"Biology",ico:"🧬",q:[
+  ["Which organelle is the powerhouse of the cell?",["Nucleus","Mitochondrion","Ribosome","Vacuole"],1,"Mitochondria release energy from food through respiration."],
+  ["Photosynthesis takes place mainly in the:",["Chloroplast","Mitochondrion","Nucleus","Cell wall"],0,"Chloroplasts contain chlorophyll, which traps light."],
+  ["Which blood group is the universal donor?",["A","B","AB","O"],3,"Group O has no A or B antigens, so most people can receive it."],
+  ["Which substance in red blood cells carries oxygen?",["Plasma","Haemoglobin","Platelets","Insulin"],1,"Haemoglobin binds oxygen in the lungs and releases it in the tissues."],
+  ["Which of these is a vertebrate?",["Earthworm","Snail","Tilapia","Cockroach"],2,"Tilapia is a fish, and fish have a backbone."]]},
+ chemistry:{name:"Chemistry",ico:"⚗️",q:[
+  ["What is the chemical symbol for sodium?",["So","Na","S","Sn"],1,"Na comes from the Latin name “natrium”."],
+  ["What is the pH of a neutral solution at 25°C?",["0","5","7","14"],2,"pH 7 is neutral. Below 7 is acidic and above 7 is alkaline."],
+  ["Which gas is lighter than air and chemically inert?",["Oxygen","Helium","Chlorine","Carbon dioxide"],1,"Helium is a noble gas, which makes it safe for balloons."],
+  ["The atomic number of an element is the number of its:",["Neutrons","Protons","Electrons plus neutrons","Shells"],1,"The atomic number is the number of protons in the nucleus."],
+  ["An acid reacting with a base to form salt and water is called:",["Oxidation","Neutralisation","Distillation","Evaporation"],1,"That reaction is neutralisation."]]}
+};
+var EXTRA = {
+ maths:[
+  ["Factorise: x² − 9",["(x − 3)(x + 3)","(x − 9)(x + 1)","(x − 3)²","(x + 3)²"],0,"This is a difference of two squares: a² − b² = (a − b)(a + b)."],
+  ["Find the value of 5! ÷ 4!",["1","4","5","20"],2,"5! = 5 × 4!, so dividing by 4! leaves 5."],
+  ["The angles of a triangle add up to:",["90°","180°","270°","360°"],1,"The three angles of any triangle sum to 180°."],
+  ["Express 0.25 as a fraction in its lowest terms.",["1/5","1/4","2/5","1/2"],1,"0.25 = 25/100 = 1/4."],
+  ["If y = 3x − 2, find y when x = 4.",["8","10","12","14"],1,"3(4) − 2 = 12 − 2 = 10."]],
+ english:[
+  ["Choose the correct spelling.",["Accomodation","Accommodation","Acommodation","Accomodetion"],1,"Accommodation has a double c and a double m."],
+  ["She has been living here ___ 2019.",["for","since","from","during"],1,"Use “since” with a fixed starting point in time."],
+  ["A word that describes a verb is called an:",["Adjective","Adverb","Noun","Preposition"],1,"Adverbs describe verbs, adjectives or other adverbs."],
+  ["Choose the word closest in meaning to BRIEF.",["Long","Short","Heavy","Loud"],1,"Brief means lasting a short time."],
+  ["“As busy as a bee” is an example of:",["Metaphor","Simile","Irony","Pun"],1,"A simile compares two things using “as” or “like”."]],
+ biology:[
+  ["Which part of a plant absorbs water from the soil?",["Leaf","Root","Stem","Flower"],1,"Roots absorb water and mineral salts."],
+  ["The loss of water vapour from plant leaves is called:",["Transpiration","Respiration","Excretion","Digestion"],0,"Transpiration happens mainly through the stomata."],
+  ["Which vitamin prevents scurvy?",["Vitamin A","Vitamin C","Vitamin D","Vitamin K"],1,"A lack of vitamin C causes scurvy."],
+  ["Which organ produces insulin?",["Liver","Pancreas","Kidney","Stomach"],1,"The pancreas makes insulin, which controls blood sugar."],
+  ["Malaria is spread by the female:",["Housefly","Anopheles mosquito","Tsetse fly","Cockroach"],1,"The Anopheles mosquito carries the Plasmodium parasite."]],
+ chemistry:[
+  ["Which of these is a noble gas?",["Nitrogen","Neon","Hydrogen","Oxygen"],1,"Neon is in Group 18, the noble gases."],
+  ["The chemical formula of common salt is:",["NaCl","KCl","CaCl₂","NaOH"],0,"Sodium chloride is NaCl."],
+  ["Zinc reacts with dilute hydrochloric acid to give which gas?",["Oxygen","Hydrogen","Carbon dioxide","Chlorine"],1,"Metal + acid gives a salt and hydrogen gas."],
+  ["Rusting of iron needs oxygen and:",["Water","Nitrogen","Helium","Oil"],0,"Iron rusts when exposed to both oxygen and water."],
+  ["How many electrons does a neutral atom of atomic number 11 have?",["1","10","11","22"],2,"A neutral atom has as many electrons as protons."]],
+ government:[
+  ["Nigeria became independent in:",["1914","1960","1963","1979"],1,"Independence was on 1 October 1960."],
+  ["Nigeria became a republic in:",["1960","1963","1966","1979"],1,"Nigeria became a republic on 1 October 1963."],
+  ["How many states does Nigeria have?",["30","32","36","37"],2,"There are 36 states, plus the Federal Capital Territory."],
+  ["The arm of government that interprets the law is the:",["Legislature","Executive","Judiciary","Civil service"],2,"The judiciary (the courts) interprets the law."],
+  ["The arm of government that makes laws is the:",["Legislature","Executive","Judiciary","Police"],0,"The legislature makes laws."],
+  ["The supreme law of Nigeria is:",["The Constitution","The Penal Code","The Police Act","The Electoral Act"],0,"Every other law must agree with the Constitution."],
+  ["The National Assembly is made up of the Senate and the:",["House of Representatives","Council of State","Supreme Court","Federal Executive Council"],0,"The two chambers together form the National Assembly."],
+  ["Rule by the people is called:",["Monarchy","Democracy","Oligarchy","Autocracy"],1,"Democracy means government by the people."],
+  ["How many senators does each Nigerian state have?",["1","2","3","5"],2,"Each state has three senators."],
+  ["Sharing power between central and regional governments is called:",["Unitary system","Federalism","Feudalism","Monarchy"],1,"That is federalism, which Nigeria practises."]],
+ economics:[
+  ["The basic economic problem is:",["Inflation","Scarcity","Unemployment","Taxation"],1,"Wants are unlimited but resources are limited."],
+  ["When the price of a good rises, the quantity demanded falls. This is the law of:",["Supply","Demand","Diminishing returns","Variable proportions"],1,"That is the law of demand."],
+  ["A general rise in the price level over time is called:",["Deflation","Inflation","Stagflation","Recession"],1,"That is inflation."],
+  ["The apex bank of Nigeria is the:",["Bank of Industry","Central Bank of Nigeria","NDIC","Stock Exchange"],1,"The CBN regulates money and banks."],
+  ["Opportunity cost is:",["Money paid for a good","The next best alternative given up","The cost of production","The cost of advertising"],1,"It is what you give up when you make a choice."],
+  ["Which of these is a factor of production?",["Labour","Tax","Interest rate","Inflation"],0,"Land, labour, capital and enterprise are the factors."],
+  ["A market with only one seller is a:",["Monopoly","Oligopoly","Perfect competition","Duopoly"],0,"A single seller is a monopoly."],
+  ["Demand for a good that rises as income rises is for a:",["Inferior good","Normal good","Public good","Free good"],1,"That describes a normal good."],
+  ["GDP stands for:",["Gross Domestic Product","General Domestic Price","Gross Dollar Payment","Grand Domestic Product"],0,"GDP measures the total value of goods and services a country produces."],
+  ["If supply rises while demand stays the same, price will:",["Rise","Fall","Stay the same","Double"],1,"More supply with the same demand pushes price down."]]
+};
+SUBJECTS.government={name:"Government",ico:"🏛️",q:[]};
+SUBJECTS.economics={name:"Economics",ico:"📈",q:[]};
+for(var k in EXTRA){EXTRA[k].forEach(function(x){SUBJECTS[k].q.push(x);});}
+var S = {xp:0,streak:0,last:"",hearts:5,hday:"",done:{}};
+function today(){var d=new Date();return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate();}
+function yest(){var d=new Date();d.setDate(d.getDate()-1);return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate();}
+var SB_URL="https://nkueqotdlhaxjrmpieiq.supabase.co",SB_KEY="sb_publishable_NTh0VU_QwlgMUMOFGQKKiQ_gyPyZIrk";
+var sb=supabase.createClient(SB_URL,SB_KEY),USER=null,PREM=false,tmr=null;
+var PK="pk_test_3f0d2e04a27658f997817804833bd0bdcad57daf";
+function applyDay(){if(S.hday!==today()){S.hearts=5;S.hday=today();}
+ if(S.last&&S.last!==today()&&S.last!==yest()){S.streak=0;}}
+async function load(){var r=await sb.from("profiles").select("*").eq("id",USER.id).single();
+ if(r.data){var p=r.data;S={xp:p.xp,streak:p.streak,last:p.last_day||"",hearts:p.hearts,hday:p.hday||"",done:p.done||{}};
+  PREM=!!p.premium&&(!p.premium_until||new Date(p.premium_until)>new Date());}
+ applyDay();}
+function save(){clearTimeout(tmr);tmr=setTimeout(function(){if(USER){sb.from("profiles").update({xp:S.xp,streak:S.streak,last_day:S.last,hearts:S.hearts,hday:S.hday,done:S.done}).eq("id",USER.id).then(function(){});}},400);}
+function authView(mode,msg){var up=mode==="up";
+ app.innerHTML='<div class="top"><span class="logo">PassIt</span></div><div class="hero"><div class="big" style="font-size:40px">Pass JAMB.</div><p>Daily practice, streaks and mock exams.</p></div><div class="card">'+(up?'<input id="nm" placeholder="Your name" autocomplete="name">':'')+'<input id="em" type="email" placeholder="Email" autocomplete="email"><input id="pw" type="password" placeholder="Password (6+ characters)" autocomplete="'+(up?'new-password':'current-password')+'"><div id="msg" class="mute" style="min-height:22px;color:var(--red)">'+(msg||'')+'</div><button class="btn" onclick="doAuth(\''+mode+'\')">'+(up?'Create account':'Log in')+'</button><button class="btn ghost" onclick="authView(\''+(up?'in':'up')+'\')">'+(up?'I already have an account':'New here? Create account')+'</button></div>';}
+async function doAuth(m){var em=document.getElementById("em").value.trim(),pw=document.getElementById("pw").value,msg=document.getElementById("msg"),r;
+ msg.style.color="var(--mute)";msg.textContent="Please wait…";
+ if(m==="up"){r=await sb.auth.signUp({email:em,password:pw,options:{data:{name:document.getElementById("nm").value.trim()}}});
+  if(!r.error&&!r.data.session){msg.style.color="var(--green)";msg.textContent="Account created. Check your email to confirm, then log in.";return;}}
+ else{r=await sb.auth.signInWithPassword({email:em,password:pw});}
+ if(r.error){msg.style.color="var(--red)";msg.textContent=r.error.message;return;}
+ USER=r.data.user;await load();save();home();}
+function startPay(){
+ if(!USER){return;}
+ var ref="PI"+Date.now()+Math.floor(Math.random()*1e6);
+ var hd=PaystackPop.setup({key:PK,email:USER.email,amount:400000,currency:"NGN",ref:ref,metadata:{user_id:USER.id},callback:function(r){confirmPay(r.reference);},onClose:function(){}});
+ hd.openIframe();}
+async function confirmPay(ref){
+ try{var s=await sb.auth.getSession();
+  var res=await fetch("/.netlify/functions/verify",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({reference:ref,token:s.data.session.access_token})});
+  var j=await res.json();
+  if(j.ok){await load();var m=document.getElementById("modal");if(m)m.remove();home();alert("Payment received. You are now Premium!");}
+  else{alert("We could not confirm your payment ("+(j.error||"unknown reason")+"). Reference: "+ref);}
+ }catch(e){alert("Network problem. Please keep this reference: "+ref);}}
+async function logout(){await sb.auth.signOut();USER=null;PREM=false;S={xp:0,streak:0,last:"",hearts:5,hday:"",done:{}};authView("in");}
+var L=null, app=document.getElementById("app");
+function days(){return Math.max(0,Math.ceil((EXAM-new Date())/864e5));}
+function hdr(){return '<div class="top"><span class="logo">PassIt</span><span><span class="pill">🔥 '+S.streak+'</span> <span class="pill">⭐ '+S.xp+'</span> <span class="pill">❤️ '+S.hearts+'</span></span></div>';}
+function home(){
+ var h=hdr()+'<div class="hero"><div class="big">'+days()+'</div><p>days to JAMB. Practise 5 minutes a day and walk in ready.</p></div>';
+ if(S.last!==today()){h+='<div class="card"><b>Your streak ends tonight.</b><div class="mute">Finish one lesson to keep it alive.</div></div>';}
+ else{h+='<div class="card"><b>Streak kept for today 🔥</b><div class="mute">Come back tomorrow to make it '+(S.streak+1)+'.</div></div>';}
+ for(var k in SUBJECTS){var d=S.done[k]||0;h+='<button class="card sub" onclick="start(\''+k+'\')"><span class="ico">'+SUBJECTS[k].ico+'</span><span style="flex:1"><b>'+SUBJECTS[k].name+'</b><div class="mute">'+d+' lesson'+(d===1?'':'s')+' done</div><div class="bar"><i style="width:'+Math.min(100,d*20)+'%"></i></div></span></button>';}
+ if(PREM){h+='<div class="card center"><b>⭐ You are Premium</b><div class="mute">Unlimited hearts are on.</div></div>';}else h+='<div class="card center"><b>Go Premium for ₦4,000 a month</b><div class="mute">Unlimited hearts, full mock exams, parent reports.</div><div style="height:10px"></div><button class="btn gold" onclick="pay()">See Premium</button></div>';
+ h+='<button class="btn ghost" onclick="logout()">Log out</button>';app.innerHTML=h;}
+function start(k){if(S.hearts<=0){pay();return;}var a=SUBJECTS[k].q.slice().sort(function(){return Math.random()-.5;}).slice(0,5);L={k:k,i:0,ok:0,sel:-1,qs:a};quiz();}
+function quiz(){
+ var q=L.qs[L.i],n=L.qs.length;
+ var h='<div class="top"><button class="btn ghost" style="width:auto" onclick="home()" aria-label="Quit lesson">✕</button><div class="prog"><i style="width:'+(L.i/n*100)+'%"></i></div><span class="pill">❤️ '+S.hearts+'</span></div><div class="q">'+q[0]+'</div>';
+ for(var j=0;j<q[1].length;j++){var c="opt";if(L.sel>=0){if(j===q[2])c+=" ok";else if(j===L.sel)c+=" bad";}
+  h+='<button class="'+c+'" '+(L.sel>=0?'disabled':'onclick="pick('+j+')"')+'>'+q[1][j]+'</button>';}
+ if(L.sel>=0){var good=L.sel===q[2];h+='<div class="fb '+(good?'ok':'bad')+'"><b>'+(good?'Correct! +10 XP':'Not quite. You lose a heart.')+'</b><div>'+q[3]+'</div></div>';
+  h+='<button class="btn" onclick="next()">'+(S.hearts<=0&&!good?'Continue':'Continue')+'</button>';}
+ app.innerHTML=h;}
+function pick(j){var q=L.qs[L.i];L.sel=j;if(j===q[2]){L.ok++;S.xp+=10;}else{if(!PREM)S.hearts=Math.max(0,S.hearts-1);}save();quiz();}
+function next(){var n=L.qs.length;
+ if(S.hearts<=0){L=null;pay();return;}
+ L.i++;L.sel=-1;if(L.i>=n){finish();}else{quiz();}}
+function finish(){
+ if(S.last!==today()){S.streak=(S.last===yest())?S.streak+1:1;S.last=today();}
+ S.done[L.k]=(S.done[L.k]||0)+1;S.xp+=5;save();
+ app.innerHTML=hdr()+'<div class="center" style="padding-top:30px"><div style="font-size:64px">🎉</div><h1>Lesson complete!</h1><p>You got <b>'+L.ok+' of '+L.qs.length+'</b> right.</p><div class="card"><b>🔥 '+S.streak+'-day streak</b><div class="mute">+5 bonus XP for finishing</div></div><button class="btn" onclick="home()">Back to lessons</button></div>';L=null;}
+function pay(){
+ var m=document.createElement("div");m.className="modal";m.id="modal";
+ m.innerHTML='<div class="sheet"><h2>'+(S.hearts<=0?'Out of hearts':'PassIt Premium')+'</h2><p class="mute">'+(S.hearts<=0?'Hearts refill tomorrow, or go Premium and keep practising now.':'Everything you need to pass.')+'</p><div class="price">₦4,000<span class="mute" style="font-size:16px"> /month</span></div><ul class="tick"><li>Unlimited hearts</li><li>Full JAMB mock exams</li><li>Step-by-step explanations</li><li>Weekly progress report for parents</li></ul><button class="btn gold" onclick="startPay()">Start Premium</button><button class="btn ghost" onclick="closeM()">Maybe later</button></div>';
+ document.body.appendChild(m);}
+function closeM(){var m=document.getElementById("modal");if(m)m.remove();home();}
+(async function(){var r=await sb.auth.getSession();if(r.data.session){USER=r.data.session.user;await load();save();home();}else{authView("up");}})();
+</script>
+</body>
+</html>
